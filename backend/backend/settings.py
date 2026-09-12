@@ -25,12 +25,14 @@ SECRET_KEY = 'django-insecure-t77))bdnj*&d6&qouipfb3jv9t_^lw&o7@@el5zzq54@k&azfk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
+    'drf_spectacular',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -115,6 +117,16 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'CourseLib API',
+    'DESCRIPTION': 'API для реєстрації та авторизації користувачів.',
+    'VERSION': '1.0.0',
+}
 
 
 # Email
