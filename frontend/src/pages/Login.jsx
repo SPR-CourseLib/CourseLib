@@ -13,16 +13,26 @@ function Login() {
     e.preventDefault();
     setError("");
 
-    try {
-      await api.post("/auth/login/", {
-        username,
-        password,
-      });
+  try {
+  const response = await api.post("/auth/login/", {
+    username,
+    password,
+  });
 
-      navigate("/");
-    } catch (error) {
-      setError("Невірний логін або пароль");
-    }
+  localStorage.setItem(
+    "accessToken",
+    response.data.access
+  );
+
+  localStorage.setItem(
+    "refreshToken",
+    response.data.refresh
+  );
+
+  navigate("/");
+} catch (error) {
+  setError("Невірний логін або пароль");
+}
   };
 
   return (

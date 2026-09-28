@@ -1,48 +1,70 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "../api/axios";
 import CourseCard from "../components/CourseCard";
 import CategoryFilter from "../components/CategoryFilter";
 import "./Home.css";
 
 function Home() {
+  const [courses, setCourses] = useState([]);
   const [selectedCategory, setSelectedCategory] =
     useState("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const courses = [
-    {
-      id: 1,
-      title: "React для початківців",
-      description: "Основи React та компонентного підходу.",
-      category: "Програмування",
-      image: "https://via.placeholder.com/600x300",
-    },
-    {
-      id: 2,
-      title: "Основи дизайну",
-      description: "UI/UX та базові принципи дизайну.",
-      category: "Дизайн",
-      image: "https://via.placeholder.com/600x300",
-    },
-    {
-      id: 3,
-      title: "Digital Marketing",
-      description: "Основи просування у цифрових каналах.",
-      category: "Маркетинг",
-      image: "https://via.placeholder.com/600x300",
-    },
-  ];
+  useEffect(() => {
+    loadCourses();
+  }, []);
 
-  const categories = [
-    ...new Set(courses.map((course) => course.category)),
-  ];
+  const loadCourses = async () => {
+    try {
+      const response = await api.get("/courses/");
+
+      setCourses(response.data);
+    } catch (error) {
+      console.error(error);
+      setError("Не вдалося завантажити курси");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+ const categories = [
+  ...new Set(
+    courses
+      .map(
+        (course) =>
+          course.category?.name ||
+          course.category
+      )
+      .filter(Boolean)
+  ),
+];
 
   const filteredCourses =
-    selectedCategory === "all"
-      ? courses
-      : courses.filter(
-          (course) =>
-            course.category === selectedCategory
-        );
+  selectedCategory === "all"
+    ? courses
+    : courses.filter((course) => {
+        const category =
+          course.category?.name ||
+          course.category;
 
+        return category === selectedCategory;
+      });
+if (loading) {
+  return (
+    <div className="text-center py-5">
+      Завантаження курсів...
+    </div>
+  );
+}
+
+if (error) {
+  return (
+    <div className="alert alert-danger">
+      {error}
+    </div>
+  );
+}
   return (
     <>
       <section className="hero-section mb-5">
