@@ -25,8 +25,22 @@ function Register() {
     setError("");
 
     try {
-      await api.post("/auth/register/", form);
-      navigate("/");
+      const response = await api.post(
+  "/auth/register/",
+  form
+);
+
+localStorage.setItem(
+  "accessToken",
+  response.data.access
+);
+
+localStorage.setItem(
+  "refreshToken",
+  response.data.refresh
+);
+
+navigate("/");
     } catch (error) {
       setError("Помилка реєстрації");
     }
