@@ -83,6 +83,7 @@ dist/
 # Django static/media builds
 backend/**/migrations/*.py
 !backend/**/migrations/__init__.py
+!backend/backend/migrations/*.py
 
 # Node / React / Vite
 node_modules/

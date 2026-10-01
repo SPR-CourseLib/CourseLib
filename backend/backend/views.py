@@ -1,10 +1,31 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import serializers, status, viewsets
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework import generics, serializers, status, viewsets
+from rest_framework.permissions import IsAdminUser, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from backend.models import Course, CourseTopic, CourseVideo
+from backend.models import Comment, Course, CourseTopic, CourseVideo
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.ReadOnlyField(source='author.username')
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'author', 'text', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
+
+
+class CourseCommentListCreateView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return Comment.objects.filter(course_id=self.kwargs['course_id'])
+
+    def perform_create(self, serializer):
+        course = get_object_or_404(Course, pk=self.kwargs['course_id'])
+        serializer.save(course=course, author=self.request.user)
 
 
 class CourseVideoSerializer(serializers.ModelSerializer):
@@ -91,6 +112,11 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseDetailSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [IsAdminUser()]
+        return super().get_permissions()
 
     def get_serializer_class(self):
         if self.action == 'list':
