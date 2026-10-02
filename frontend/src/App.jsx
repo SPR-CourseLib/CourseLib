@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import CourseDetail from "./pages/CourseDetail";
 import CreateCourse from "./pages/CreateCourse";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
@@ -17,7 +18,14 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/course/:id" element={<CourseDetail />} />
-          <Route path="/create-course" element={<CreateCourse />} />
+          <Route
+            path="/create-course"
+            element={
+              <AdminRoute>
+                <CreateCourse />
+              </AdminRoute>
+            }
+          />
         </Route>
       </Routes>
     </BrowserRouter>

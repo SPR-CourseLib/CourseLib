@@ -1,7 +1,32 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import api from "../api/axios";
 
 function Header() {
-  const user = null;
+  const [isAdmin, setIsAdmin] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    let active = true;
+
+    if (!localStorage.getItem("accessToken")) {
+      return () => {
+        active = false;
+      };
+    }
+
+    api.get("/auth/me/")
+      .then(({ data }) => {
+        if (active) setIsAdmin(Boolean(data.is_staff));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [location.pathname]);
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -16,33 +41,21 @@ function Header() {
             Курси
           </Link>
 
-          <Link className="nav-link" to="/create-course">
-            Створити курс
-          </Link>
+          {isAdmin && (
+            <Link className="nav-link" to="/create-course">
+              Створити курс
+            </Link>
+          )}
         </div>
 
         <div className="navbar-nav align-items-center">
-          {user ? (
-            <>
-              <span className="navbar-text me-3">
-                {user.name}
-              </span>
+          <Link className="nav-link" to="/login">
+            Увійти
+          </Link>
 
-              <button className="btn btn-outline-light">
-                Вийти
-              </button>
-            </>
-          ) : (
-            <>
-              <Link className="nav-link" to="/login">
-                Увійти
-              </Link>
-
-              <Link className="btn btn-primary" to="/register">
-                Реєстрація
-              </Link>
-            </>
-          )}
+          <Link className="btn btn-primary" to="/register">
+            Реєстрація
+          </Link>
         </div>
 
       </div>

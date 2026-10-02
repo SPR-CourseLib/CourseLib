@@ -167,6 +167,8 @@ function CreateCourse() {
         setError(
           "Потрібно увійти в акаунт перед створенням курсу."
         );
+      } else if (err.response?.status === 403) {
+        setError("Створювати курси можуть лише адміністратори.");
       } else {
         setError("Не вдалося створити курс.");
       }

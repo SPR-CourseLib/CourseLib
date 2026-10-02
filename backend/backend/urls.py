@@ -19,6 +19,7 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from backend.views import (
+    CourseCommentListCreateView,
     CourseTopicDetailView,
     CourseTopicListCreateView,
     CourseVideoDetailView,
@@ -31,6 +32,7 @@ urlpatterns = [
     path('api/auth/', include('backend.users')),
     path('api/courses/', CourseViewSet.as_view({'get': 'list', 'post': 'create'}), name='course-list'),
     path('api/courses/<int:pk>/', CourseViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='course-detail'),
+    path('api/courses/<int:course_id>/comments/', CourseCommentListCreateView.as_view(), name='course-comments'),
     path('api/courses/<int:course_id>/topics/', CourseTopicListCreateView.as_view(), name='course-topic-list-create'),
     path('api/courses/<int:course_id>/topics/<int:pk>/', CourseTopicDetailView.as_view(), name='course-topic-detail'),
     path('api/topics/<int:topic_id>/videos/', CourseVideoListCreateView.as_view(), name='topic-video-list-create'),
