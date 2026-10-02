@@ -13,12 +13,15 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 from datetime import timedelta
 from pathlib import Path
 import os
+import truststore
 from dotenv import load_dotenv
 
-load_dotenv()
+# Use the operating system's trusted CA store for outbound HTTPS requests.
+truststore.inject_into_ssl()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
@@ -31,6 +34,10 @@ SECRET_KEY = os.environ['SECRET_KEY']
 DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver').split(',')
+
+BLOCKCHAIN_RPC_URL = os.environ.get('BLOCKCHAIN_RPC_URL', '')
+BLOCKCHAIN_CONTRACT_ADDRESS = os.environ.get('BLOCKCHAIN_CONTRACT_ADDRESS', '')
+BLOCKCHAIN_CHAIN_ID = int(os.environ.get('BLOCKCHAIN_CHAIN_ID', '11155111'))
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
