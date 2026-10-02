@@ -20,6 +20,8 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 from backend.views import (
     CourseCommentListCreateView,
+    CourseEnrollView,
+    MyCoursesView,
     CourseTopicDetailView,
     CourseTopicListCreateView,
     CourseVideoDetailView,
@@ -39,4 +41,6 @@ urlpatterns = [
     path('api/topics/<int:topic_id>/videos/<int:pk>/', CourseVideoDetailView.as_view(), name='topic-video-detail'),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('api/courses/<int:course_id>/enroll/', CourseEnrollView.as_view(), name='course-enroll'),
+    path('api/my-courses/', MyCoursesView.as_view(), name='my-courses'),
 ]

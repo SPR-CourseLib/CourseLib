@@ -95,4 +95,24 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.author.username} on {self.course.title}'
+
+class Enrollment(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='enrollments')
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='enrollments')
+    wallet_address = models.CharField(max_length=42, blank=True, default='')
+    tx_hash = models.CharField(max_length=66, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('course', 'student')
+        constraints = [
+            models.UniqueConstraint(
+                fields=('course', 'wallet_address'),
+                condition=~models.Q(wallet_address=''),
+                name='unique_course_wallet_enrollment',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.student.username} enrolled in {self.course.title}'
     
