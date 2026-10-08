@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { saveAuthTokens } from "../auth";
 
 function Register() {
   const [form, setForm] = useState({
@@ -30,15 +31,7 @@ function Register() {
   form
 );
 
-localStorage.setItem(
-  "accessToken",
-  response.data.access
-);
-
-localStorage.setItem(
-  "refreshToken",
-  response.data.refresh
-);
+saveAuthTokens(response.data);
 
 navigate("/");
     } catch (error) {

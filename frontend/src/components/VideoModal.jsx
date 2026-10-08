@@ -1,9 +1,12 @@
 import ReactPlayer from "react-player";
+import FormattedText, { extractExternalUrl } from "./FormattedText";
 
 function VideoModal({ video, onClose }) {
   if (!video) {
     return null;
   }
+
+  const videoUrl = extractExternalUrl(video.video_url);
 
   return (
     <div
@@ -31,18 +34,25 @@ function VideoModal({ video, onClose }) {
           </div>
 
           <div className="modal-body">
-
-            <ReactPlayer
-              src={video.video_url}
-              controls
-              width="100%"
-              height="450px"
-            />
+            {videoUrl ? (
+              <div className="ratio ratio-16x9">
+                <ReactPlayer
+                  src={videoUrl}
+                  controls
+                  width="100%"
+                  height="100%"
+                />
+              </div>
+            ) : (
+              <div className="alert alert-warning mb-0">
+                Для цього уроку не вказано коректне посилання на відео.
+              </div>
+            )}
 
             {video.description && (
-              <p className="mt-3">
+              <FormattedText className="mt-3 mb-0">
                 {video.description}
-              </p>
+              </FormattedText>
             )}
 
           </div>

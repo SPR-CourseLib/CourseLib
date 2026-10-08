@@ -1,7 +1,10 @@
 import axios from "axios";
+import { clearAuthTokens } from "../auth";
+
+const apiBaseUrl = (import.meta.env.VITE_API_URL || "/api").replace(/\/+$/, "");
 
 const api = axios.create({
- baseURL: "/api",
+  baseURL: apiBaseUrl,
 });
 
 api.interceptors.request.use(
@@ -31,16 +34,14 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem("refreshToken");
 
       if (!refreshToken) {
+        clearAuthTokens();
         return Promise.reject(error);
       }
 
       try {
-        const response = await axios.post(
-  "/api/auth/refresh/",
-  {
-    refresh: refreshToken,
-  }
-);
+        const response = await axios.post(`${apiBaseUrl}/auth/refresh/`, {
+          refresh: refreshToken,
+        });
 
         const newAccessToken = response.data.access;
 
@@ -54,8 +55,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
+        clearAuthTokens();
 
         return Promise.reject(refreshError);
       }

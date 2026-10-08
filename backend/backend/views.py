@@ -259,6 +259,7 @@ class CourseTopicSerializer(serializers.ModelSerializer):
 
 class CourseListSerializer(serializers.ModelSerializer):
     created_by = serializers.ReadOnlyField(source='created_by.username')
+    cover_image = serializers.ImageField(read_only=True)
 
     class Meta:
         model = Course
@@ -268,6 +269,7 @@ class CourseListSerializer(serializers.ModelSerializer):
             'short_description',
             'level',
             'price',
+            'cover_image',
             'created_by',
             'is_published',
             'created_at',
@@ -330,6 +332,7 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'description',
             'level',
             'price',
+            'cover_image',
             'created_by',
             'is_published',
             'topics',
@@ -337,6 +340,12 @@ class CourseDetailSerializer(serializers.ModelSerializer):
             'updated_at',
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at']
+
+    def validate_cover_image(self, image):
+        max_size = 5 * 1024 * 1024
+        if image and image.size > max_size:
+            raise serializers.ValidationError("Обкладинка має бути не більшою за 5 МБ.")
+        return image
 
     def create(self, validated_data):
         topics_data = validated_data.pop('topics', [])
