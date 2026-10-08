@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
 
@@ -30,6 +30,17 @@ function CreateCourse() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [coverImage, setCoverImage] = useState(null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState("");
+  const coverPreviewUrlRef = useRef("");
+
+  useEffect(() => {
+    return () => {
+      if (coverPreviewUrlRef.current) {
+        URL.revokeObjectURL(coverPreviewUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -38,6 +49,44 @@ function CreateCourse() {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+  };
+
+  const handleCoverImageChange = (e) => {
+    const selectedFile = e.target.files?.[0] || null;
+    const clearCurrentImage = () => {
+      if (coverPreviewUrlRef.current) {
+        URL.revokeObjectURL(coverPreviewUrlRef.current);
+        coverPreviewUrlRef.current = "";
+      }
+      setCoverPreviewUrl("");
+      setCoverImage(null);
+    };
+
+    if (!selectedFile) {
+      clearCurrentImage();
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(selectedFile.type)) {
+      setError("Оберіть зображення у форматі JPG, PNG або WebP.");
+      e.target.value = "";
+      clearCurrentImage();
+      return;
+    }
+    if (selectedFile.size > 5 * 1024 * 1024) {
+      setError("Розмір обкладинки не має перевищувати 5 МБ.");
+      e.target.value = "";
+      clearCurrentImage();
+      return;
+    }
+
+    clearCurrentImage();
+    const previewUrl = URL.createObjectURL(selectedFile);
+    coverPreviewUrlRef.current = previewUrl;
+    setCoverPreviewUrl(previewUrl);
+    setError("");
+    setCoverImage(selectedFile);
   };
 
   const handleTopicChange = (topicIndex, field, value) => {
@@ -113,18 +162,17 @@ function CreateCourse() {
     setError("");
 
     try {
-      // 1. Створюємо сам курс
-      const courseResponse = await api.post(
-        "/courses/",
-        {
-          title: form.title,
-          short_description: form.short_description,
-          description: form.description,
-          level: form.level,
-          price: Number(form.price),
-          is_published: form.is_published,
-        }
-      );
+      const courseData = new FormData();
+      courseData.append("title", form.title);
+      courseData.append("short_description", form.short_description);
+      courseData.append("description", form.description);
+      courseData.append("level", form.level);
+      courseData.append("price", String(Number(form.price)));
+      courseData.append("is_published", String(form.is_published));
+      if (coverImage) courseData.append("cover_image", coverImage);
+
+      // Create the course and upload its optional cover in the same request.
+      const courseResponse = await api.post("/courses/", courseData);
 
       const courseId = courseResponse.data.id;
 
@@ -170,7 +218,13 @@ function CreateCourse() {
       } else if (err.response?.status === 403) {
         setError("Створювати курси можуть лише адміністратори.");
       } else {
-        setError("Не вдалося створити курс.");
+        const imageError = err.response?.data?.cover_image;
+        const detail = err.response?.data?.detail;
+        setError(
+          (Array.isArray(imageError) && imageError[0]) ||
+          (typeof detail === "string" && detail) ||
+          "Не вдалося створити курс. Перевірте дані та файл обкладинки.",
+        );
       }
     } finally {
       setLoading(false);
@@ -243,6 +297,30 @@ function CreateCourse() {
                 onChange={handleFormChange}
                 required
               />
+            </div>
+
+            <div className="mb-3">
+              <label className="form-label" htmlFor="cover_image">
+                Обкладинка курсу (необов’язково)
+              </label>
+              <input
+                id="cover_image"
+                type="file"
+                className="form-control"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleCoverImageChange}
+              />
+              <div className="form-text">
+                JPG, PNG або WebP, до 5 МБ.
+              </div>
+              {coverPreviewUrl && (
+                <img
+                  src={coverPreviewUrl}
+                  alt="Попередній перегляд обкладинки"
+                  className="img-fluid rounded mt-3"
+                  style={{ maxHeight: "260px" }}
+                />
+              )}
             </div>
 
             <div className="row">

@@ -1,32 +1,53 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { AUTH_STATE_EVENT, clearAuthTokens } from "../auth";
 
 function Header() {
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    () => Boolean(localStorage.getItem("accessToken")),
+  );
   const [isAdmin, setIsAdmin] = useState(false);
+  const [username, setUsername] = useState("");
   const location = useLocation();
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    let active = true;
+  const loadUser = useCallback(async () => {
+    const accessToken = localStorage.getItem("accessToken");
+    setIsAuthenticated(Boolean(accessToken));
 
-    if (!localStorage.getItem("accessToken")) {
-      return () => {
-        active = false;
-      };
+    if (!accessToken) {
+      setIsAdmin(false);
+      setUsername("");
+      return;
     }
 
-    api.get("/auth/me/")
-      .then(({ data }) => {
-        if (active) setIsAdmin(Boolean(data.is_staff));
-      })
-      .catch(() => {
-        if (active) setIsAdmin(false);
-      });
+    try {
+      const { data } = await api.get("/auth/me/");
+      if (localStorage.getItem("accessToken") === accessToken) {
+        setIsAdmin(Boolean(data.is_staff));
+        setUsername(data.username || "");
+      }
+    } catch {
+      if (localStorage.getItem("accessToken") === accessToken) {
+        setIsAdmin(false);
+        setUsername("");
+      }
+    }
+  }, []);
 
+  useEffect(() => {
+    loadUser();
+    window.addEventListener(AUTH_STATE_EVENT, loadUser);
     return () => {
-      active = false;
+      window.removeEventListener(AUTH_STATE_EVENT, loadUser);
     };
-  }, [location.pathname]);
+  }, [loadUser, location.pathname]);
+
+  const handleLogout = () => {
+    clearAuthTokens();
+    navigate("/");
+  };
 
   return (
     <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -41,6 +62,12 @@ function Header() {
             Курси
           </Link>
 
+          {isAuthenticated && (
+            <Link className="nav-link" to="/my-courses">
+              Мої курси
+            </Link>
+          )}
+
           {isAdmin && (
             <Link className="nav-link" to="/create-course">
               Створити курс
@@ -49,13 +76,32 @@ function Header() {
         </div>
 
         <div className="navbar-nav align-items-center">
-          <Link className="nav-link" to="/login">
-            Увійти
-          </Link>
+          {isAuthenticated ? (
+            <div className="d-flex align-items-center gap-3">
+              {username && (
+                <span className="navbar-text text-light">
+                  {username}
+                </span>
+              )}
+              <button
+                type="button"
+                className="btn btn-outline-light"
+                onClick={handleLogout}
+              >
+                Вийти
+              </button>
+            </div>
+          ) : (
+            <>
+              <Link className="nav-link" to="/login">
+                Увійти
+              </Link>
 
-          <Link className="btn btn-primary" to="/register">
-            Реєстрація
-          </Link>
+              <Link className="btn btn-primary" to="/register">
+                Реєстрація
+              </Link>
+            </>
+          )}
         </div>
 
       </div>

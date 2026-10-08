@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
+import { saveAuthTokens } from "../auth";
 
 function Login() {
   const [username, setUsername] = useState("");
@@ -19,15 +20,7 @@ function Login() {
     password,
   });
 
-  localStorage.setItem(
-    "accessToken",
-    response.data.access
-  );
-
-  localStorage.setItem(
-    "refreshToken",
-    response.data.refresh
-  );
+  saveAuthTokens(response.data);
 
   navigate("/");
 } catch (error) {
